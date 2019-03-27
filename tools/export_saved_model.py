@@ -94,7 +94,6 @@ def build_saved_model(ckpt_path, export_dir):
     sess = tf.Session(config=sess_config)
 
     with sess.as_default():
-
         saver.restore(sess=sess, save_path=ckpt_path)
 
         # set model save builder
@@ -132,7 +131,7 @@ def test_load_saved_model(saved_model_dir, char_dict_path, ord_map_dict_path):
     :param ord_map_dict_path:
     :return:
     """
-    image = cv2.imread('data/test_images/test_01.jpg', cv2.IMREAD_COLOR)
+    image = cv2.imdecode(np.fromfile('data/test_images/test_01.jpg', dtype=np.uint8), 1)
     image_vis = image
     image = cv2.resize(
         src=image,
@@ -151,7 +150,6 @@ def test_load_saved_model(saved_model_dir, char_dict_path, ord_map_dict_path):
     sess = tf.Session(config=sess_config)
 
     with sess.as_default():
-
         meta_graphdef = sm.loader.load(
             sess,
             tags=[sm.tag_constants.SERVING],
