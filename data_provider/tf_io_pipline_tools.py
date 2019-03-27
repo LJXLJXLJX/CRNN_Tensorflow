@@ -10,6 +10,7 @@ Implement some utils used to convert image and it's corresponding label into tfr
 """
 import os.path as ops
 import sys
+from time import time
 
 import numpy as np
 import cv2
@@ -139,9 +140,16 @@ class _FeatureIO(object):
         :param labels:
         :return:
         """
+        log.info('Encoding...')
         encoded_labels = []
         lengths = []
+        count = 0
+        start = time()
         for label in labels:
+            count += 1
+            if count % 1000 == 0:
+                print(count, '(', time() - start, 's)')
+                start = time()
             encode_label = [self.char_to_int(char) for char in label]
             encoded_labels.append(encode_label)
             lengths.append(len(label))
@@ -194,8 +202,13 @@ class _TextFeatureWriter(_FeatureIO):
         example_image_labels, example_image_labels_length = self.encode_labels(example_image_labels)
 
         with tf.python_io.TFRecordWriter(tfrecords_save_path) as writer:
+            count = 0
+            start = time()
             for index, image_path in enumerate(example_image_paths):
-
+                count += 1
+                if count % 1000 == 0:
+                    print(count, '(', time() - start, 's)')
+                    start = time()
                 with open(image_path, 'rb') as f:
                     check_chars = f.read()[-2:]
                 if check_chars != b'\xff\xd9':
@@ -254,7 +267,7 @@ class _TextFeatureReader(_FeatureIO):
         :return:
         """
         if not isinstance(value, str):
-           raise ValueError('Dataset flags shoule be str')
+            raise ValueError('Dataset flags shoule be str')
 
         if value.lower() not in ['train', 'val', 'test']:
             raise ValueError('Dataset flags shoule be within \'train\', \'val\', \'test\'')

@@ -21,14 +21,14 @@ __C.ARCH = edict()
 __C.ARCH.HIDDEN_UNITS = 256
 # Number of stacked LSTM cells
 __C.ARCH.HIDDEN_LAYERS = 2
-# Sequence length.  This has to be the width of the final feature map of the CNN, which is input size width / 4
-__C.ARCH.SEQ_LENGTH = 25
 # Width x height into which training / testing images are resized before feeding into the network
-__C.ARCH.INPUT_SIZE = (100, 32)
+__C.ARCH.INPUT_SIZE = (280, 32)
+# Sequence length.  This has to be the width of the final feature map of the CNN, which is input size width / 4
+__C.ARCH.SEQ_LENGTH = __C.ARCH.INPUT_SIZE[0] / 4
 # Number of channels in images
 __C.ARCH.INPUT_CHANNELS = 3
 # Number of units in each LSTM cell
-__C.ARCH.NUM_CLASSES = 37
+__C.ARCH.NUM_CLASSES = 5991
 
 # Train options
 __C.TRAIN = edict()
@@ -55,9 +55,9 @@ __C.TRAIN.GPU_MEMORY_FRACTION = 0.9
 # Set the GPU allow growth parameter during tensorflow training process
 __C.TRAIN.TF_ALLOW_GROWTH = True
 # Set the shadownet training batch size
-__C.TRAIN.BATCH_SIZE = 32
+__C.TRAIN.BATCH_SIZE = 128
 # Set the shadownet validation batch size
-__C.TRAIN.VAL_BATCH_SIZE = 32
+__C.TRAIN.VAL_BATCH_SIZE = 128
 # Set the learning rate decay steps
 __C.TRAIN.LR_DECAY_STEPS = 500000
 # Set the learning rate decay rate
@@ -72,6 +72,12 @@ __C.TRAIN.GPU_NUM = 2
 __C.TRAIN.MOVING_AVERAGE_DECAY = 0.9999
 # Set val display step
 __C.TRAIN.VAL_DISPLAY_STEP = 1000
+
+
+# Set tboard save directory
+__C.TRAIN.TBOARD_SAVE_DIR = 'tboard/chinese'
+# Set model save directory
+__C.TRAIN.MODEL_SAVE_DIR = 'model/chinese'
 
 # Test options
 __C.TEST = edict()

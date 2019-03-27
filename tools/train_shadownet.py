@@ -153,11 +153,12 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
         batch_size=CFG.TRAIN.BATCH_SIZE,
         num_epochs=1
     )
+    tf.summary.image(name='train_image', tensor=train_images, max_outputs=10)
     val_images, val_labels, val_images_paths = val_dataset.inputs(
         batch_size=CFG.TRAIN.BATCH_SIZE,
         num_epochs=1
     )
-
+    tf.summary.image(name='val_images', tensor=val_images, max_outputs=10)
     # declare crnn net
     shadownet = crnn_model.ShadowNet(
         phase='train',
@@ -231,7 +232,7 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
                 loss=train_ctc_loss, global_step=global_step)
 
     # Set tf summary
-    tboard_save_dir = 'tboard/crnn_syn90k'
+    tboard_save_dir = CFG.TRAIN.TBOARD_SAVE_DIR
     os.makedirs(tboard_save_dir, exist_ok=True)
     tf.summary.scalar(name='train_ctc_loss', tensor=train_ctc_loss)
     tf.summary.scalar(name='val_ctc_loss', tensor=val_ctc_loss)
@@ -245,7 +246,7 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
 
     # Set saver configuration
     saver = tf.train.Saver()
-    model_save_dir = 'model/crnn_syn90k'
+    model_save_dir = CFG.TRAIN.MODEL_SAVE_DIR
     os.makedirs(model_save_dir, exist_ok=True)
     train_start_time = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
     model_name = 'shadownet_{:s}.ckpt'.format(str(train_start_time))
@@ -268,10 +269,13 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
         if weights_path is None:
             logger.info('Training from scratch')
             init = tf.global_variables_initializer()
+            logger.info('Run init')
             sess.run(init)
+            logger.info('Init Done')
         else:
             logger.info('Restore model from {:s}'.format(weights_path))
             saver.restore(sess=sess, save_path=weights_path)
+            logger.info('Restore Done')
 
         patience_counter = 1
         cost_history = [np.inf]
@@ -317,8 +321,10 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
                     logger.info('Epoch_Val: {:d} cost= {:9f} seq distance= {:9f} train accuracy= {:9f}'.format(
                         epoch + 1, val_ctc_loss_value, val_seq_dist_value, avg_val_accuracy))
             else:
+                logger.info('feed')
                 _, train_ctc_loss_value, merge_summary_value = sess.run(
                     [optimizer, train_ctc_loss, merge_summary_op])
+                logger.info('feed done')
 
                 if epoch % CFG.TRAIN.DISPLAY_STEP == 0:
                     logger.info('Epoch_Train: {:d} cost= {:9f}'.format(epoch + 1, train_ctc_loss_value))
@@ -441,7 +447,7 @@ def train_shadownet_multi_gpu(dataset_dir, weights_path, char_dict_path, ord_map
                         batchnorm_updates_op)
 
     # set tensorflow summary
-    tboard_save_path = 'tboard/crnn_syn90k_multi_gpu'
+    tboard_save_path = 'tboard/chinese'
     os.makedirs(tboard_save_path, exist_ok=True)
 
     summary_writer = tf.summary.FileWriter(tboard_save_path)
@@ -459,7 +465,7 @@ def train_shadownet_multi_gpu(dataset_dir, weights_path, char_dict_path, ord_map
 
     # set tensorflow saver
     saver = tf.train.Saver()
-    model_save_dir = 'model/crnn_syn90k_multi_gpu'
+    model_save_dir = 'model/chinese'
     os.makedirs(model_save_dir, exist_ok=True)
     train_start_time = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
     model_name = 'shadownet_{:s}.ckpt'.format(str(train_start_time))
