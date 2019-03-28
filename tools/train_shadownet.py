@@ -26,6 +26,11 @@ from data_provider import tf_io_pipline_tools
 
 CFG = global_config.cfg
 
+gpu_id = "3"
+
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ['CUDA_VISIBLE_DEVICES'] = gpu_id
+
 
 def init_args():
     """
@@ -180,7 +185,7 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
     ).reader
 
     # set up training graph
-    with tf.device('/gpu:1'):
+    with tf.device("/gpu:" + gpu_id):
 
         # compute loss and seq distance
         train_inference_ret, train_ctc_loss = shadownet.compute_loss(
@@ -265,6 +270,7 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
     # Set the training parameters
     train_epochs = CFG.TRAIN.EPOCHS
 
+    epoch = 0
     with sess.as_default():
         if weights_path is None:
             logger.info('Training from scratch')
@@ -275,12 +281,15 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
         else:
             logger.info('Restore model from {:s}'.format(weights_path))
             saver.restore(sess=sess, save_path=weights_path)
+            epoch = sess.run(tf.train.get_global_step())
+            logger.info(epoch)
             logger.info('Restore Done')
 
         patience_counter = 1
         cost_history = [np.inf]
-        for epoch in range(train_epochs):
-
+        # for epoch in range(train_epochs):
+        while epoch < train_epochs:
+            epoch += 1
             # setup early stopping
             if epoch > 1 and CFG.TRAIN.EARLY_STOPPING:
                 # We always compare to the first point where cost didn't improve
@@ -321,10 +330,8 @@ def train_shadownet(dataset_dir, weights_path, char_dict_path, ord_map_dict_path
                     logger.info('Epoch_Val: {:d} cost= {:9f} seq distance= {:9f} train accuracy= {:9f}'.format(
                         epoch + 1, val_ctc_loss_value, val_seq_dist_value, avg_val_accuracy))
             else:
-                logger.info('feed')
                 _, train_ctc_loss_value, merge_summary_value = sess.run(
                     [optimizer, train_ctc_loss, merge_summary_op])
-                logger.info('feed done')
 
                 if epoch % CFG.TRAIN.DISPLAY_STEP == 0:
                     logger.info('Epoch_Train: {:d} cost= {:9f}'.format(epoch + 1, train_ctc_loss_value))
