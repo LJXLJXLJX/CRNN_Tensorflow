@@ -180,6 +180,14 @@ class _FeatureIO(object):
             res.append(''.join(c for c in str_list if c != '\x00'))
         return res
 
+    def array_to_str(self, array):
+        values = np.array([self._ord_map[str(tmp)] for tmp in array])
+        chars = np.asarray([self.int_to_char(tmp) for tmp in values])
+        text = ''
+        for c in chars:
+            text += c
+        return text
+
 
 class _TextFeatureWriter(_FeatureIO):
     """
@@ -192,13 +200,11 @@ class _TextFeatureWriter(_FeatureIO):
 
     def write_features(self, example_image_paths, example_image_labels, tfrecords_save_path):
         """
-
         :param example_image_paths:
         :param example_image_labels:
         :param tfrecords_save_path:
         :return:
         """
-
         example_image_labels, example_image_labels_length = self.encode_labels(example_image_labels)
 
         with tf.python_io.TFRecordWriter(tfrecords_save_path) as writer:
@@ -406,3 +412,14 @@ class TextFeatureIO(object):
         :return:
         """
         return self._reader
+
+
+if __name__ == '__main__':
+    codec = TextFeatureIO(
+        char_dict_path='../data/char_dict/char_dict.json',
+        ord_map_dict_path='../data/char_dict/ord_map.json'
+    ).reader
+
+    array = [1, 2, 3]
+    text = codec.array_to_str(array)
+    print(text)

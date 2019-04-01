@@ -22,7 +22,7 @@ __C.ARCH.HIDDEN_UNITS = 256
 # Number of stacked LSTM cells
 __C.ARCH.HIDDEN_LAYERS = 2
 # Width x height into which training / testing images are resized before feeding into the network
-__C.ARCH.INPUT_SIZE = (280, 32)
+__C.ARCH.INPUT_SIZE = (160, 32)
 # Sequence length.  This has to be the width of the final feature map of the CNN, which is input size width / 4
 __C.ARCH.SEQ_LENGTH = __C.ARCH.INPUT_SIZE[0] / 4
 # Number of channels in images
